@@ -359,6 +359,7 @@ pdunehd==1.3
 # homeassistant.components.device_tracker.asuswrt
 # homeassistant.components.device_tracker.cisco_ios
 # homeassistant.components.media_player.pandora
+# homeassistant.components.switch.ubiquiti_mpower
 pexpect==4.0.1
 
 # homeassistant.components.light.hue
