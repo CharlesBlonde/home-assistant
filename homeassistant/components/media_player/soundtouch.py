@@ -5,6 +5,7 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/media_player.soundtouch/
 """
 import logging
+import asyncio
 
 from os import path
 import voluptuous as vol
@@ -169,6 +170,34 @@ class SoundTouchDevice(MediaPlayerDevice):
         self._status = self._device.status()
         self._volume = self._device.volume()
         self._config = config
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        """Callback when entity is added to hass."""
+        self.hass.async_add_job(self.init_websocket)
+
+    def _update_listener(self, message):
+        # pylint: disable=unused-argument
+        """Update device status."""
+        self._status = self._device.status(refresh=False)
+        self._volume = self._device.volume(refresh=False)
+        self.schedule_update_ha_state()
+
+    def init_websocket(self):
+        """Init Websocket connection."""
+        _LOGGER.info("Start websocket notification")
+        self._device.add_volume_listener(self._update_listener)
+        self._device.add_status_listener(self._update_listener)
+        self._device.add_device_info_listener(self._update_listener)
+        self._device.start_notification()
+
+    @property
+    def should_poll(self) -> bool:
+        """Return True if entity has to be polled for state.
+
+        False if entity pushes its state to HA.
+        """
+        return False
 
     @property
     def config(self):
